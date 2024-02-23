@@ -1,13 +1,33 @@
 /***********************************************************************
- *  Mini-Pins Playfield:
- *      Copyright (c) 2020 bitfield labs
- *
- ***********************************************************************
- *  This file is part of the Mini-Pins project:
+ _    ____ _  _ ___  _  _ ____ ___ ____ _ _ _ ____ ____ ___  _    ____ _ _
+ |___ |--| |\/| |--' |\/| |--|  |  |--< | _X_ |--< |=== |--' |___ |--|  Y 
+
  *
  ***********************************************************************/
 
-/*  Replay event format
+/*
+***********************************************************************
+ *  This file is part of the afterglow pinball lamp matrix WS2812
+ *  replay project (PLM2812):
+ *  https://github.com/bitfieldlabs/pinball_lamp_matrix_replay_ws2812
+ *
+ *  PLM2812 is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *  PLM2812 is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with afterglow.
+ *  If not, see <http://www.gnu.org/licenses/>.
+ ***********************************************************************/
+
+/*
+    Replay event format
 
     There are two types of events:
 

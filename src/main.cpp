@@ -1,15 +1,61 @@
+
+/***********************************************************************
+ _    ____ _  _ ___  _  _ ____ ___ ____ _ _ _ ____ ____ ___  _    ____ _ _
+ |___ |--| |\/| |--' |\/| |--|  |  |--< | _X_ |--< |=== |--' |___ |--|  Y 
+
+ *
+ ***********************************************************************/
+
+/*
+***********************************************************************
+ *  This file is part of the afterglow pinball lamp matrix WS2812
+ *  replay project (PLM2812):
+ *  https://github.com/bitfieldlabs/pinball_lamp_matrix_replay_ws2812
+ *
+ *  PLM2812 is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License as
+ *  published by the Free Software Foundation, either version 3 of the
+ *  License, or (at your option) any later version.
+ *
+ *  PLM2812 is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU Lesser General Public License for more details.
+ *
+ *  You should have received a copy of the GNU Lesser General Public
+ *  License along with afterglow.
+ *  If not, see <http://www.gnu.org/licenses/>.
+ ***********************************************************************/
+
 #include <Arduino.h>
 
 #include <Adafruit_NeoPixel.h>
-#include "replay_totan.h"
+#include "replay_t2.h"
 
 
+//------------------------------------------------------------------------------
+// Setup
+
+// Pico GPIO used for WS2812 data output
 #define PIN        4
+
+// Number of LEDs in the strand
 #define NUMPIXELS 64
 
-Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
-
+// Number of lamp matrix columns
 #define NUM_COL 8
+
+// LED brightness scale (1=full, 2=half, 3=quarter etc.)
+#define LED_BRIGHTNESS_SCALE 2
+
+// Use LED colors (1=color, 0=off/all white)
+#define LED_COLORS 1
+
+
+//------------------------------------------------------------------------------
+// Static variables
+
+static Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 static uint32_t sTtagReplay = 0;
 
@@ -26,6 +72,7 @@ static uint32_t sReplayPos = 0;
 static AG_LAMP_SWITCH_2B_t sReplayEvent = {0};
 
 
+//------------------------------------------------------------------------------
 void setup()
 {
     pixels.begin();
@@ -89,32 +136,27 @@ void replay()
     }
 }
 
+//------------------------------------------------------------------------------
 void loop()
-{/*
-    pixels.clear();
-
-    for(int i=0; i<NUMPIXELS; i++)
-    {
-        pixels.setPixelColor(i, pixels.Color(0, 10, 0));
-
-        pixels.show();
-
-        delay(100);
-    }
-    */
-
+{
     uint32_t m1 = millis();
     byte c = (NUM_COL-1);
     byte row = 0;
     byte lampMask = 0x01;
 
+    // update all LEDs
     for(int i=0; i<NUMPIXELS; i++)
     {
         if (sReplayLamps[c] & lampMask)
         {
-            byte r = kLampColors[c][row].r >> 4;
-            byte g = kLampColors[c][row].g >> 4;
-            byte b = kLampColors[c][row].b >> 4;
+            byte r, g, b;
+#if (LED_COLORS)
+            r = kLampColors[c][row].r >> LED_BRIGHTNESS_SCALE;
+            g = kLampColors[c][row].g >> LED_BRIGHTNESS_SCALE;
+            b = kLampColors[c][row].b >> LED_BRIGHTNESS_SCALE;
+#else
+                r = g = b = (255 >> LED_BRIGHTNESS_SCALE);
+#endif
             pixels.setPixelColor(i, pixels.Color(r, g, b));
         }
         else
@@ -136,7 +178,7 @@ void loop()
     sTtagReplay++;
     replay();
     
-    // create a 16ms interval
+    // create a 16ms update interval
     uint32_t m2 = millis();
     uint32_t dm = (m2-m1);
     if (dm < 16)
