@@ -83,14 +83,14 @@ void setup()
 void getNextEvent()
 {
     // read the next byte
-    byte evByte = *(byte*)(kLampReplay + sReplayPos);
+    uint8_t evByte = *((uint8_t*)kLampReplay + sReplayPos);
 
     // check if this is a two-byte event marker
     if (evByte != AG_REPLAY_2B_MARKER)
     {
         // single byte event -> convert to two byte
         AG_LAMP_SWITCH_1B_t ev1B;
-        *((byte*)&ev1B) = evByte;
+        *((uint8_t*)&ev1B) = evByte;
         sReplayEvent.col = ev1B.col;
         sReplayEvent.row = ev1B.row;
         sReplayEvent.dttag = ev1B.dttag;
@@ -100,7 +100,12 @@ void getNextEvent()
     {
         // two byte event
         // read the next two bytes
-        uint16_t evBytes = pgm_read_word_near(kLampReplay + sReplayPos + 1);
+        uint16_t evBytes;
+        // memcpy to avoid unaligned access
+        // swap bytes for endianess
+        memcpy(&evBytes, (uint8_t*)kLampReplay + sReplayPos + 2, 1);
+        memcpy((uint8_t*)evBytes+1, (uint8_t*)kLampReplay + sReplayPos + 1, 1);
+
         uint16_t *pReplay2B = (uint16_t*)&sReplayEvent;
         *pReplay2B = evBytes;
         sReplayPos += 3;
@@ -139,21 +144,29 @@ void replay()
 //------------------------------------------------------------------------------
 void loop()
 {
+    /*
+    for (int i=0; i<64; i++)
+    {
+        pixels.setPixelColor(i, pixels.Color(55, 55, 0));
+        pixels.show();
+        delay(500);
+    }
+    */
     uint32_t m1 = millis();
-    byte c = (NUM_COL-1);
+    byte col = 0;
     byte row = 0;
     byte lampMask = 0x01;
 
     // update all LEDs
     for(int i=0; i<NUMPIXELS; i++)
     {
-        if (sReplayLamps[c] & lampMask)
+        if (sReplayLamps[col] & lampMask)
         {
             byte r, g, b;
 #if (LED_COLORS)
-            r = kLampColors[c][row].r >> LED_BRIGHTNESS_SCALE;
-            g = kLampColors[c][row].g >> LED_BRIGHTNESS_SCALE;
-            b = kLampColors[c][row].b >> LED_BRIGHTNESS_SCALE;
+            r = kLampColors[col][row].r >> LED_BRIGHTNESS_SCALE;
+            g = kLampColors[col][row].g >> LED_BRIGHTNESS_SCALE;
+            b = kLampColors[col][row].b >> LED_BRIGHTNESS_SCALE;
 #else
                 r = g = b = (255 >> LED_BRIGHTNESS_SCALE);
 #endif
@@ -167,11 +180,10 @@ void loop()
         row++;
         if (lampMask == 0)
         {
-            c--;
+            col++;
             lampMask = 0x01;
             row = 0;
         }
-        if (c>NUM_COL) c=(NUM_COL-1);
     }
     pixels.show();
 
@@ -185,4 +197,5 @@ void loop()
     {
         delay(16-dm);
     }
+
 }

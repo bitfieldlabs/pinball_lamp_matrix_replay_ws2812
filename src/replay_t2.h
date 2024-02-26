@@ -58,9 +58,9 @@
 // Replay record, 1 byte
 typedef struct AG_LAMP_SWITCH_1B_s
 {
-    uint16_t col : 3;    // lamp column
-    uint16_t row : 3;    // lamp row
-    uint16_t dttag : 2; // delta time tag [16ms] to the last event
+    uint8_t col : 3;    // lamp column
+    uint8_t row : 3;    // lamp row
+    uint8_t dttag : 2; // delta time tag [16ms] to the last event
 } AG_LAMP_SWITCH_1B_t;
 
 // Replay record, 2 bytes
@@ -91,7 +91,7 @@ typedef struct AG_LAMP_COLOR_s
 #define WARMWHITE {253, 244, 220}
 #define WHITE {255, 255, 255}
 
-const AG_LAMP_COLOR_t kLampColors[8][8] PROGMEM =
+const AG_LAMP_COLOR_t kLampColors[8][8] =
 {
     { GREEN, GREEN, ORANGE, GREEN, GREEN, YELLOW, WHITE, WHITE},
     { ORANGE, RED, WHITE, ORANGE, YELLOW, GREEN, ORANGE, PURPLE},
@@ -103,7 +103,7 @@ const AG_LAMP_COLOR_t kLampColors[8][8] PROGMEM =
     { RED, RED, WHITE, YELLOW, WHITE, GREEN, GREEN, GREEN}
 };
 
-const AG_LAMP_SWITCH_1B_t kLampReplay[] PROGMEM =
+const AG_LAMP_SWITCH_1B_t kLampReplay[] =
 {
     {7, 3, 0}, {7, 7, 3}, {7, 3, 0}, {3, 3, 0}, {7, 7, 3}, {3, 1, 0}, {6, 1, 1}, {7, 0, 0}, {7, 2, 0}, {0, 5, 2}, 
     {1, 0, 0}, {3, 1, 0}, {5, 6, 0}, {7, 2, 0}, {0, 5, 1}, {3, 6, 0}, {3, 7, 0}, {1, 4, 2}, {1, 5, 0}, {3, 7, 0}, 

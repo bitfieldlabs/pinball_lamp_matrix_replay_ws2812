@@ -57,9 +57,9 @@
 // Replay record, 1 byte
 typedef struct AG_LAMP_SWITCH_1B_s
 {
-    uint16_t col : 3;    // lamp column
-    uint16_t row : 3;    // lamp row
-    uint16_t dttag : 2; // delta time tag [16ms] to the last event
+    uint8_t col : 3;    // lamp column
+    uint8_t row : 3;    // lamp row
+    uint8_t dttag : 2; // delta time tag [16ms] to the last event
 } AG_LAMP_SWITCH_1B_t;
 
 // Replay record, 2 bytes
