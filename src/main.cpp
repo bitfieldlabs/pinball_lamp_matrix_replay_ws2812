@@ -34,6 +34,19 @@
 
 
 //------------------------------------------------------------------------------
+// Raspberry pico setup
+
+// Pico GPIO used for WS2812 data output
+#define LED_DATA_PIN 4
+
+// Pico GPIO used for color / white selection
+#define COLOR_PIN    5
+
+// Pico GPIO used for brightness selection
+#define BRIGHTNESS_PIN    6
+
+
+//------------------------------------------------------------------------------
 // Setup
 
 // Replay time base (1 ttag = 20ms)
@@ -51,9 +64,6 @@
 // Afterglow brightness stepca
 #define AFTERGLOW_STEP ((uint8_t)(256 / AFTERGLOW_DUR_TTAG))
 
-// Pico GPIO used for WS2812 data output
-#define PIN        4
-
 // Number of LEDs in the strand
 #define NUMPIXELS 64
 
@@ -66,14 +76,11 @@
 // LED brightness scale (1=full, 2=half, 3=quarter etc.)
 #define LED_BRIGHTNESS_SCALE 2
 
-// Use LED colors (1=color, 0=off/all white)
-#define LED_COLORS 1
-
 
 //------------------------------------------------------------------------------
 // Static variables
 
-static Adafruit_NeoPixel pixels(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+static Adafruit_NeoPixel pixels(NUMPIXELS, LED_DATA_PIN, NEO_GRB + NEO_KHZ800);
 
 static uint32_t sTtagReplay = 0;
 
@@ -98,6 +105,9 @@ void setup()
 {
     pixels.begin();
     Serial.begin(115200);
+
+    pinMode(COLOR_PIN, INPUT_PULLUP);
+    pinMode(BRIGHTNESS_PIN, INPUT_PULLUP);
 }
 
 //------------------------------------------------------------------------------
@@ -212,19 +222,30 @@ void loop()
 
         // determine LED color
         byte r, g, b;
-#if (LED_COLORS)
-        r = kLampColors[col][row].r;
-        g = kLampColors[col][row].g;
-        b = kLampColors[col][row].b;
-#else
-        r = g = b = 255; // white
-#endif
+
+        if (digitalRead(COLOR_PIN) == HIGH)
+        {
+            r = kLampColors[col][row].r;
+            g = kLampColors[col][row].g;
+            b = kLampColors[col][row].b;
+        }
+        else
+        {
+            r = g = b = 255; // white
+        }
 
         // adjust the brightness
         uint16_t v = (uint16_t)sLampMatrixAG[col][row];
-        r = (uint8_t)((((uint16_t)r * v) >> 8) >> LED_BRIGHTNESS_SCALE);
-        g = (uint8_t)((((uint16_t)g * v) >> 8) >> LED_BRIGHTNESS_SCALE);
-        b = (uint8_t)((((uint16_t)b * v) >> 8) >> LED_BRIGHTNESS_SCALE);
+        r = (uint8_t)((((uint16_t)r * v) >> 8));
+        g = (uint8_t)((((uint16_t)g * v) >> 8));
+        b = (uint8_t)((((uint16_t)b * v) >> 8));
+
+        if (digitalRead(BRIGHTNESS_PIN) == HIGH)
+        {
+            r >>= LED_BRIGHTNESS_SCALE;
+            g >>= LED_BRIGHTNESS_SCALE;
+            b >>= LED_BRIGHTNESS_SCALE;
+        }
 
         // update the LED
         pixels.setPixelColor(i, pixels.Color(r, g, b));
