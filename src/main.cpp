@@ -36,6 +36,9 @@
 //------------------------------------------------------------------------------
 // Setup
 
+// Replay time base (1 ttag = 20ms)
+#define REPLAY_TIME_INT 20
+
 // Pico GPIO used for WS2812 data output
 #define PIN        4
 
@@ -190,12 +193,12 @@ void loop()
     sTtagReplay++;
     replay();
     
-    // create a 16ms update interval
+    // create a REPLAY_TIME_INT ms update interval
     uint32_t m2 = millis();
     uint32_t dm = (m2-m1);
-    if (dm < 16)
+    if (dm < REPLAY_TIME_INT)
     {
-        delay(16-dm);
+        delay(REPLAY_TIME_INT-dm);
     }
 
 }
