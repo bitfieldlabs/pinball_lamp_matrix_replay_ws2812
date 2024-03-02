@@ -14,7 +14,10 @@ The lamp matrix pattern recording was done using a patched version of pinmame wh
 There are also some python tools to analyze and visualize the recordings. See the [pattern_recording_tools](https://github.com/bitfieldlabs/pinball_lamp_matrix_replay_ws2812/tree/master/pattern_recording_tools) folder.
 
 ### Configuration
-There are some varibales in the _Setup_ section of main.cpp which can be used for configuration. Not much at the moment.
+There are some variables in the _Setup_ section of main.cpp which can be used for configuration. Not much at the moment.
+
+* Pulling GPIO5 to ground will enable all white LEDs mode
+* Pulling GPIO6 to ground will enable full brightness
 
 ### Pre-compiled binaries for Raspberry Pico boards
 Some pre-compiled binaries can be found in the [u2f](https://github.com/bitfieldlabs/pinball_lamp_matrix_replay_ws2812/tree/master/u2f) folder.
