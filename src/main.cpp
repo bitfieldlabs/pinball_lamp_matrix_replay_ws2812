@@ -39,6 +39,18 @@
 // Replay time base (1 ttag = 20ms)
 #define REPLAY_TIME_INT 20
 
+// Enable afterglow
+#define AFTERGLOW 1
+
+// Afterglow duration [ms]
+#define AFTERGLOW_DUR 120
+
+// Afterglow duration in time tags
+#define AFTERGLOW_DUR_TTAG ((uint32_t)(AFTERGLOW_DUR / REPLAY_TIME_INT))
+
+// Afterglow brightness stepca
+#define AFTERGLOW_STEP ((uint8_t)(256 / AFTERGLOW_DUR_TTAG))
+
 // Pico GPIO used for WS2812 data output
 #define PIN        4
 
@@ -47,6 +59,9 @@
 
 // Number of lamp matrix columns
 #define NUM_COL 8
+
+// Number of lamp matrix rows
+#define NUM_ROW 8
 
 // LED brightness scale (1=full, 2=half, 3=quarter etc.)
 #define LED_BRIGHTNESS_SCALE 2
@@ -64,6 +79,9 @@ static uint32_t sTtagReplay = 0;
 
 // Replay lamp matrix
 static byte sReplayLamps[NUM_COL] = {0};
+
+// Afterglow values for lamp matrix
+static uint8_t sLampMatrixAG[NUM_COL][NUM_ROW] = {0};
 
 // Last replay update ttag
 static uint32_t sReplayLastUpdTtag = 0;
@@ -165,20 +183,52 @@ void loop()
     {
         if (sReplayLamps[col] & lampMask)
         {
-            byte r, g, b;
-#if (LED_COLORS)
-            r = kLampColors[col][row].r >> LED_BRIGHTNESS_SCALE;
-            g = kLampColors[col][row].g >> LED_BRIGHTNESS_SCALE;
-            b = kLampColors[col][row].b >> LED_BRIGHTNESS_SCALE;
-#else
-                r = g = b = (255 >> LED_BRIGHTNESS_SCALE);
+#if AFTERGLOW
+            // AG update
+            if (sLampMatrixAG[col][row] < (255 - AFTERGLOW_STEP))
+            {
+                sLampMatrixAG[col][row] += AFTERGLOW_STEP;
+            }
+            else
 #endif
-            pixels.setPixelColor(i, pixels.Color(r, g, b));
+            {
+                sLampMatrixAG[col][row] = 255;
+            }
         }
         else
         {
-            pixels.setPixelColor(i, pixels.Color(0, 0, 0));
+            // AG update
+#if AFTERGLOW
+            if (sLampMatrixAG[col][row] > AFTERGLOW_STEP)
+            {
+                sLampMatrixAG[col][row] -= AFTERGLOW_STEP;
+            }
+            else
+#endif
+            {
+                sLampMatrixAG[col][row] = 0;
+            }
         }
+
+        // determine LED color
+        byte r, g, b;
+#if (LED_COLORS)
+        r = kLampColors[col][row].r;
+        g = kLampColors[col][row].g;
+        b = kLampColors[col][row].b;
+#else
+        r = g = b = 255; // white
+#endif
+
+        // adjust the brightness
+        uint16_t v = (uint16_t)sLampMatrixAG[col][row];
+        r = (uint8_t)((((uint16_t)r * v) >> 8) >> LED_BRIGHTNESS_SCALE);
+        g = (uint8_t)((((uint16_t)g * v) >> 8) >> LED_BRIGHTNESS_SCALE);
+        b = (uint8_t)((((uint16_t)b * v) >> 8) >> LED_BRIGHTNESS_SCALE);
+
+        // update the LED
+        pixels.setPixelColor(i, pixels.Color(r, g, b));
+
         lampMask <<= 1;
         row++;
         if (lampMask == 0)
